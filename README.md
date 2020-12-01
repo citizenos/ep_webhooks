@@ -28,7 +28,7 @@ In your Etherpad Lite ``settings.json``:
 
 ## pads.update
 
-Hook is called when any of the pads is updated. Payload contains the id-s of the pads that have been modified.
+Hook is called when any of the pads is updated. Payload contains the id-s of the pads that have been modified and user id-s of authors and last revision number of that user.
  
 Sample HTTP request made by ep_webhooks to the registered hook url:
 
@@ -36,7 +36,7 @@ Sample HTTP request made by ep_webhooks to the registered hook url:
 POST https://mydomain.com/api/notifications/pads/update
 X-API-KEY: supersecretApiKeyForTheMasses
 {
-    padIds: ['pad1', 'pad2', 'pad3']
+    pads: {"pad1":[{"userId": "2e904907-a763-461b-8327-75a0d3fc6d93", rev:3}, {"userId": "2e80db42-8146-48dc-bbfd-a192684c2513", rev: 3}], "pad2":[{"userId":"c9d946f7-1e50-4f93-b205-daa00f2937d2", rev:2}], "pad3":[{"userId": "2e80db42-8146-48dc-bbfd-a192684c2513", rev: 4}]}
 }
 ```
 

@@ -4,7 +4,8 @@
             "name": "ep_webhooks",
             "hooks": {
                 "loadSettings": "ep_webhooks/serverHooks:loadSettings",
-                "handleMessage": "ep_webhooks/serverHooks:handleMessage"
+                "handleMessage": "ep_webhooks/serverHooks:handleMessage",
+                "padUpdate": "ep_webhooks/serverHooks:padUpdate"
             }
         }
     ]

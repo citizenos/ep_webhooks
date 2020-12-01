@@ -25,7 +25,14 @@ const callPadUpdateWebhooks = _.debounce(() => {
     return;
   }
 
-  const changedPadIds = Object.keys(changedPads);
+  const changedPadIds = changedPads;
+
+  const padIds = Object.keys(changedPadIds);
+  padIds.forEach((padId) => {
+    changedPadIds[padId].forEach((user) => {
+      delete user.author;
+    });
+  });
   changedPads = {};
 
   const updateHooksToCall = _.get(pluginSettings, ['pads', 'update']);
@@ -44,13 +51,12 @@ const callPadUpdateWebhooks = _.debounce(() => {
 
       req
           .set('X-API-KEY', pluginSettings.apiKey)
-          .send({padIds: changedPadIds})
+          .send({pads: changedPadIds})
           .end((err, res) => {
             if (err) {
-              logger.error('callPadUpdateWebhooks - HTTP POST failed to ',
-                  path,
-                  '. Error was',
-                  err);
+              logger.error(`
+              allPadUpdateWebhooks - HTTP POST failed to , ${path}, . Error was', ${err}`
+              );
             }
           });
     });
@@ -73,11 +79,24 @@ exports.handleMessage = (hook, context, cb) => {
     const messageType = _.get(context.message, 'data.type');
 
     if (messageType === 'USER_CHANGES') {
-      const padId = _.get(padMessageHandler.sessioninfos[context.client.id], 'padId');
+      const user = _.get(context, 'client.conn.request.session.user');
+      const clientId = _.get(context, 'client.id');
+      const rev = _.get(padMessageHandler, `sessioninfos[${clientId}].rev`);
+      const padId = _.get(padMessageHandler, `sessioninfos[${clientId}].padId`);
+      const author = _.get(padMessageHandler, `sessioninfos[${clientId}].author`);
+
       if (padId) {
         logger.debug('handleMessage', 'PAD CHANGED', padId);
-        changedPads[padId] = 1; // Use object, as then I don't need to worry about duplicates
-        callPadUpdateWebhooks();
+        if (changedPads[padId]) {
+          const userIndex = _.findIndex(changedPads[padId], (e) => e.userId === user.id);
+          if (userIndex > -1) {
+            changedPads[padId].splice(userIndex, 1);
+          }
+        } else {
+          changedPads[padId] = [];
+        }
+        // Use object, as then I don't need to worry about duplicates
+        changedPads[padId].push({userId: user.id, author, rev});
       } else {
         logger.warn('handleMessage', 'Pad changed, but no padId!');
       }
@@ -111,9 +130,17 @@ exports.loadSettings = (hook, args, cb) => {
         throw new Error(message);
       }
     }
-  } else {
-    logger.warn('Plugin configuration not found, doing nothing.');
   }
+};
 
-  return cb();
+exports.padUpdate = (hook, context, cb) => {
+  if (context.pad.id && changedPads[context.pad.id] && changedPads[context.pad.id].length) {
+    changedPads[context.pad.id].forEach((pad, key) => {
+      if (pad.author === context.author) {
+        changedPads[context.pad.id][key].rev = context.pad.head;
+      }
+    });
+    callPadUpdateWebhooks();
+    return cb(true);
+  }
 };

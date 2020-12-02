@@ -131,6 +131,8 @@ exports.loadSettings = (hook, args, cb) => {
       }
     }
   }
+
+  return cb();
 };
 
 exports.padUpdate = (hook, context, cb) => {
@@ -142,5 +144,7 @@ exports.padUpdate = (hook, context, cb) => {
     });
     callPadUpdateWebhooks();
     return cb(true);
+  } else {
+    return cb();
   }
 };

@@ -1,13 +1,13 @@
 {
   "name": "ep_webhooks",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Webhooks for Etherpad Lite.",
   "author": {
     "name": "Tiblu"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tiblu/ep_webhooks.git"
+    "url": "https://github.com/citizenos/ep_webhooks.git"
   },
   "readmeFilename": "README.md",
   "dependencies": {

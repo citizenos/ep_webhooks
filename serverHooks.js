@@ -88,7 +88,7 @@ exports.handleMessage = (hook, context, cb) => {
       if (padId) {
         logger.debug('handleMessage', 'PAD CHANGED', padId);
         if (changedPads[padId]) {
-          const userIndex = _.findIndex(changedPads[padId], (e) => e.userId === user.id);
+          const userIndex = changedPads[padId].findIndex((e) => e.userId === user.id);
           if (userIndex > -1) {
             changedPads[padId].splice(userIndex, 1);
           }

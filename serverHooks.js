@@ -40,8 +40,7 @@ const callPadUpdateWebhooks = _.debounce(() => {
   if (Array.isArray(updateHooksToCall)) {
     // Fire and forget - no guarantees of delivery for now
     updateHooksToCall.forEach((path) => {
-      const req = request
-          .post(path);
+      const req = request.post(path);
 
       // The support for self signed certificates
       const caCert = pluginSettings.caCert;
@@ -50,15 +49,15 @@ const callPadUpdateWebhooks = _.debounce(() => {
       }
 
       req
-          .set('X-API-KEY', pluginSettings.apiKey)
-          .send({pads: changedPadIds})
-          .end((err, res) => {
-            if (err) {
-              logger.error(`
+        .set('X-API-KEY', pluginSettings.apiKey)
+        .send({pads: changedPadIds})
+        .end((err, res) => {
+          if (err) {
+            logger.error(`
               allPadUpdateWebhooks - HTTP POST failed to , ${path}, . Error was', ${err}`
-              );
-            }
-          });
+            );
+          }
+        });
     });
   }
 }, 1000, {maxWait: 5000});
@@ -70,10 +69,10 @@ const callPadUpdateWebhooks = _.debounce(() => {
  * @param {object} context
  * @param {Function} cb Callback
  *
- * @see {@link http://etherpad.org/doc/v1.5.7/#index_handlemessage}
+ * @see {@link http://etherpad.org/doc/v1.8.14/#index_handlemessage}
  */
 exports.handleMessage = (hook, context, cb) => {
-  logger.debug('handleMessage');
+  logger.debug('ep_webhooks', hook, context);
 
   if (pluginSettings) {
     const messageType = _.get(context.message, 'data.type');
@@ -81,6 +80,7 @@ exports.handleMessage = (hook, context, cb) => {
     if (messageType === 'USER_CHANGES') {
       const user = _.get(context, 'client.conn.request.session.user');
       const clientId = _.get(context, 'client.id');
+      const ip = _.get(context, 'client.conn.remoteAddress');
       const rev = _.get(padMessageHandler, `sessioninfos[${clientId}].rev`);
       const padId = _.get(padMessageHandler, `sessioninfos[${clientId}].padId`);
       const author = _.get(padMessageHandler, `sessioninfos[${clientId}].author`);
@@ -96,7 +96,12 @@ exports.handleMessage = (hook, context, cb) => {
           changedPads[padId] = [];
         }
         // Use object, as then I don't need to worry about duplicates
-        changedPads[padId].push({userId: user.id, author, rev});
+        changedPads[padId].push({
+          userId: user.id,
+          author,
+          rev,
+          ip
+        });
       } else {
         logger.warn('handleMessage', 'Pad changed, but no padId!');
       }
@@ -112,9 +117,11 @@ exports.handleMessage = (hook, context, cb) => {
  * @param {string} hook_name "loadSettings"
  * @param {object} args Object {settings: {object}}
  *
- * @see {@link http://etherpad.org/doc/v1.5.7/#index_loadsettings}
+ * @see {@link http://etherpad.org/doc/v1.8.14/#index_loadsettings}
  */
 exports.loadSettings = (hook, args, cb) => {
+  logger.debug('ep_webhooks', hook, args);
+
   const settings = args.settings;
   if (settings && settings[PLUGIN_NAME]) {
     pluginSettings = settings[PLUGIN_NAME];
@@ -136,6 +143,8 @@ exports.loadSettings = (hook, args, cb) => {
 };
 
 exports.padUpdate = (hook, context, cb) => {
+  logger.debug('ep_webhooks', hook, context);
+
   if (context.pad.id && changedPads[context.pad.id] && changedPads[context.pad.id].length) {
     changedPads[context.pad.id].forEach((pad, key) => {
       if (pad.author === context.author) {

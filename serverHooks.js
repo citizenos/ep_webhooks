@@ -48,16 +48,15 @@ const callPadUpdateWebhooks = _.debounce(() => {
         req.ca(caCert);
       }
 
-      req
-        .set('X-API-KEY', pluginSettings.apiKey)
-        .send({pads: changedPadIds})
-        .end((err, res) => {
-          if (err) {
-            logger.error(`
+      req.set('X-API-KEY', pluginSettings.apiKey);
+      req.send({pads: changedPadIds});
+      req.end((err, res) => {
+        if (err) {
+          logger.error(`
               allPadUpdateWebhooks - HTTP POST failed to , ${path}, . Error was', ${err}`
-            );
-          }
-        });
+          );
+        }
+      });
     });
   }
 }, 1000, {maxWait: 5000});
@@ -100,7 +99,7 @@ exports.handleMessage = (hook, context, cb) => {
           userId: user.id,
           author,
           rev,
-          ip
+          ip // eslint-disable-line comma-dangle
         });
       } else {
         logger.warn('handleMessage', 'Pad changed, but no padId!');

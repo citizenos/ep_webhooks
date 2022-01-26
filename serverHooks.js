@@ -79,7 +79,7 @@ exports.handleMessage = (hook, context, cb) => {
     if (messageType === 'USER_CHANGES') {
       const user = _.get(context, 'client.conn.request.session.user');
       const clientId = _.get(context, 'client.id');
-      const ip = _.get(context, 'client.conn.remoteAddress');
+      const ip = _.get(context, 'client.conn.request.ip');
       const rev = _.get(padMessageHandler, `sessioninfos[${clientId}].rev`);
       const padId = _.get(padMessageHandler, `sessioninfos[${clientId}].padId`);
       const author = _.get(padMessageHandler, `sessioninfos[${clientId}].author`);

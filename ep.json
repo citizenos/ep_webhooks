@@ -5,7 +5,8 @@
             "hooks": {
                 "loadSettings": "ep_webhooks/serverHooks:loadSettings",
                 "handleMessage": "ep_webhooks/serverHooks:handleMessage",
-                "padUpdate": "ep_webhooks/serverHooks:padUpdate"
+                "padUpdate": "ep_webhooks/serverHooks:padUpdate",
+                "userLeave": "ep_webhooks/serverHooks:userLeave"
             }
         }
     ]

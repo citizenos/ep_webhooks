@@ -156,3 +156,7 @@ exports.padUpdate = (hook, context, cb) => {
     return cb();
   }
 };
+
+exports.userLeave = async (hookName, {author, padId}) => {
+  callPadUpdateWebhooks();
+};

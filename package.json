@@ -1,6 +1,6 @@
 {
   "name": "ep_webhooks",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Webhooks for Etherpad Lite.",
   "author": {
     "name": "Tiblu"

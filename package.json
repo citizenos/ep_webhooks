@@ -11,19 +11,19 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "lodash": "^4.17.21",
-    "superagent": "6.1.0"
+    "lodash.debounce": "^4.0.8",
+    "superagent": "8.1.2"
   },
   "devDependencies": {
-    "eslint": "^7.32.0",
-    "eslint-config-etherpad": "^2.0.3",
-    "eslint-plugin-cypress": "^2.11.3",
+    "eslint": "^8.51.0",
+    "eslint-config-etherpad": "^3.0.22",
+    "eslint-plugin-cypress": "^2.15.1",
     "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-mocha": "^9.0.0",
+    "eslint-plugin-mocha": "^10.0.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
-    "eslint-plugin-promise": "^5.1.0",
-    "eslint-plugin-you-dont-need-lodash-underscore": "^6.12.0"
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-you-dont-need-lodash-underscore": "^6.13.0"
   },
   "eslintConfig": {
     "root": true,
@@ -36,7 +36,7 @@
     "lint": "eslint ."
   },
   "engines": {
-    "node": ">= 14.17.3",
-    "npm": ">= 6.14.13"
+    "node": ">=16.20.1",
+    "npm": ">=6.14.0"
   }
 }

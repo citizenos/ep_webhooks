@@ -1,7 +1,7 @@
 'use strict';
 
 const PLUGIN_NAME = 'ep_webhooks';
-const _ = require('lodash');
+const debounce = require('lodash.debounce');
 const request = require('superagent');
 
 const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger(PLUGIN_NAME);
@@ -17,7 +17,7 @@ let changedPads = {}; // Pads that have changed. key = padId, value = 1
  *
  * @see {@link https://lodash.com/docs#debounce}
  */
-const callPadUpdateWebhooks = _.debounce(() => {
+const callPadUpdateWebhooks = debounce(() => {
   logger.debug('callPadUpdateWebhooks', changedPads);
 
   // No pads changed
@@ -35,8 +35,7 @@ const callPadUpdateWebhooks = _.debounce(() => {
   });
   changedPads = {};
 
-  const updateHooksToCall = _.get(pluginSettings, ['pads', 'update']);
-
+  const updateHooksToCall = pluginSettings?.pads?.update;
   if (Array.isArray(updateHooksToCall)) {
     // Fire and forget - no guarantees of delivery for now
     updateHooksToCall.forEach((path) => {
@@ -74,15 +73,15 @@ exports.handleMessage = (hook, context, cb) => {
   logger.debug('ep_webhooks', hook, context);
 
   if (pluginSettings) {
-    const messageType = _.get(context.message, 'data.type');
+    const messageType = context?.message?.data?.type;
 
     if (messageType === 'USER_CHANGES') {
-      const user = _.get(context, 'client.conn.request.session.user');
-      const clientId = _.get(context, 'client.id');
-      const ip = _.get(context, 'client.conn.request.ip');
-      const rev = _.get(padMessageHandler, `sessioninfos[${clientId}].rev`);
-      const padId = _.get(padMessageHandler, `sessioninfos[${clientId}].padId`);
-      const author = _.get(padMessageHandler, `sessioninfos[${clientId}].author`);
+      const user = context?.client?.conn?.request?.session?.user;
+      const clientId = context?.client?.id;
+      const ip = context?.client?.conn?.request?.ip;
+      const rev = padMessageHandler.sessioninfos?.[clientId]?.rev;
+      const padId = padMessageHandler.sessioninfos?.[clientId]?.padId;
+      const author = padMessageHandler.sessioninfos?.[clientId]?.author;
 
       if (padId) {
         logger.debug('handleMessage', 'PAD CHANGED', padId);

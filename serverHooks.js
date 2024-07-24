@@ -52,7 +52,7 @@ const callPadUpdateWebhooks = debounce(() => {
       req.end((err, res) => {
         if (err) {
           logger.error(`
-              allPadUpdateWebhooks - HTTP POST failed to , ${path}, . Error was', ${err}`
+              allPadUpdateWebhooks - HTTP POST failed to , ${path}, . Error was', ${err}`,
           );
         }
       });

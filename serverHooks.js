@@ -5,7 +5,6 @@ const debounce = require('lodash.debounce');
 const request = require('superagent');
 
 const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger(PLUGIN_NAME);
-const padMessageHandler = require('ep_etherpad-lite/node/handler/PadMessageHandler.js');
 
 let pluginSettings; // set with loadSettings hook
 let changedPads = {}; // Pads that have changed. key = padId, value = 1
@@ -48,7 +47,7 @@ const callPadUpdateWebhooks = debounce(() => {
       }
 
       req.set('X-API-KEY', pluginSettings.apiKey);
-      req.send({pads: changedPadIds});
+      req.send({ pads: changedPadIds });
       req.end((err, res) => {
         if (err) {
           logger.error(`
@@ -58,7 +57,7 @@ const callPadUpdateWebhooks = debounce(() => {
       });
     });
   }
-}, 1000, {maxWait: 5000});
+}, 1000, { maxWait: 5000 });
 
 /**
  * handleMessage hook
@@ -69,20 +68,15 @@ const callPadUpdateWebhooks = debounce(() => {
  *
  * @see {@link http://etherpad.org/doc/v1.8.14/#index_handlemessage}
  */
-exports.handleMessage = (hook, context, cb) => {
-  logger.debug('ep_webhooks', hook, context);
-
+exports.handleMessage = async (hook, { message, sessionInfo, client, socket }) => {
+  logger.debug('ep_webhooks', hook, message);
   if (pluginSettings) {
-    const messageType = context?.message?.data?.type;
-
+    const messageType = message?.data?.type;
     if (messageType === 'USER_CHANGES') {
-      const user = context?.client?.conn?.request?.session?.user;
-      const clientId = context?.client?.id;
-      const ip = context?.client?.conn?.request?.ip;
-      const rev = padMessageHandler.sessioninfos?.[clientId]?.rev;
-      const padId = padMessageHandler.sessioninfos?.[clientId]?.padId;
-      const author = padMessageHandler.sessioninfos?.[clientId]?.author;
-
+      const user = socket.client.request.session.user;
+      const ip = socket.client.request.ip;
+      const rev = message.data.baseRev;
+      const padId = sessionInfo.padId;
       if (padId) {
         logger.debug('handleMessage', 'PAD CHANGED', padId);
         if (changedPads[padId]) {
@@ -96,7 +90,6 @@ exports.handleMessage = (hook, context, cb) => {
         // Use object, as then I don't need to worry about duplicates
         changedPads[padId].push({
           userId: user.id,
-          author,
           rev,
           ip // eslint-disable-line comma-dangle
         });
@@ -105,8 +98,6 @@ exports.handleMessage = (hook, context, cb) => {
       }
     }
   }
-
-  return cb([context.message]);
 };
 
 /**
@@ -117,7 +108,7 @@ exports.handleMessage = (hook, context, cb) => {
  *
  * @see {@link http://etherpad.org/doc/v1.8.14/#index_loadsettings}
  */
-exports.loadSettings = (hook, args, cb) => {
+exports.loadSettings = async (hook, args) => {
   logger.debug('ep_webhooks', hook, args);
 
   const settings = args.settings;
@@ -131,31 +122,26 @@ exports.loadSettings = (hook, args, cb) => {
       if (caCert.indexOf('-----BEGIN CERTIFICATE-----') !== 0) {
         const message = `Invalid configuration! If you provide caCert,
         make sure it looks like a cert.`;
-        logger.error(message);
+        logger.error(message)
         throw new Error(message);
       }
     }
   }
 
-  return cb();
 };
 
-exports.padUpdate = (hook, context, cb) => {
-  logger.debug('ep_webhooks', hook, context);
-
-  if (context.pad.id && changedPads[context.pad.id] && changedPads[context.pad.id].length) {
-    changedPads[context.pad.id].forEach((pad, key) => {
-      if (pad.author === context.author) {
-        changedPads[context.pad.id][key].rev = context.pad.head;
+exports.padUpdate = async (hook, { pad, authorId }) => {
+  logger.debug('ep_webhooks', hook);
+  if (pad.id && changedPads[pad.id] && changedPads[pad.id].length) {
+    changedPads[pad.id].forEach((pad, key) => {
+      if (pad.author === authorId) {
+        changedPads[pad.id][key].rev = pad.head;
       }
     });
     callPadUpdateWebhooks();
-    return cb(true);
-  } else {
-    return cb();
   }
 };
 
-exports.userLeave = async (hookName, {author, padId}) => {
+exports.userLeave = async (hookName, { authorId, padId }) => {
   callPadUpdateWebhooks();
 };

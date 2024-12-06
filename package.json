@@ -21,6 +21,10 @@
     "typescript": "^5.4.3"
   },
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix ."
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

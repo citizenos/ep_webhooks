@@ -3,10 +3,10 @@
         {
             "name": "ep_webhooks",
             "hooks": {
-                "loadSettings": "ep_webhooks/serverHooks:loadSettings",
-                "handleMessage": "ep_webhooks/serverHooks:handleMessage",
-                "padUpdate": "ep_webhooks/serverHooks:padUpdate",
-                "userLeave": "ep_webhooks/serverHooks:userLeave"
+                "loadSettings": "ep_webhooks/index",
+                "handleMessage": "ep_webhooks/index",
+                "padUpdate": "ep_webhooks/index",
+                "userLeave": "ep_webhooks/index"
             }
         }
     ]

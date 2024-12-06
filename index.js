@@ -4,8 +4,6 @@ const PLUGIN_NAME = 'ep_webhooks';
 const debounce = require('lodash.debounce');
 const request = require('superagent');
 
-const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger(PLUGIN_NAME);
-
 let pluginSettings; // set with loadSettings hook
 let changedPads = {}; // Pads that have changed. key = padId, value = 1
 
@@ -17,7 +15,7 @@ let changedPads = {}; // Pads that have changed. key = padId, value = 1
  * @see {@link https://lodash.com/docs#debounce}
  */
 const callPadUpdateWebhooks = debounce(() => {
-  logger.debug('callPadUpdateWebhooks', changedPads);
+  console.log('callPadUpdateWebhooks', changedPads);
 
   // No pads changed
   if (!Object.keys(changedPads).length) {
@@ -50,7 +48,7 @@ const callPadUpdateWebhooks = debounce(() => {
       req.send({ pads: changedPadIds });
       req.end((err, res) => {
         if (err) {
-          logger.error(`
+          console.error(`
               allPadUpdateWebhooks - HTTP POST failed to , ${path}, . Error was', ${err}`,
           );
         }
@@ -69,7 +67,7 @@ const callPadUpdateWebhooks = debounce(() => {
  * @see {@link http://etherpad.org/doc/v1.8.14/#index_handlemessage}
  */
 exports.handleMessage = async (hook, { message, sessionInfo, client, socket }) => {
-  logger.debug('ep_webhooks', hook, message);
+  console.log('ep_webhooks', hook, message);
   if (pluginSettings) {
     const messageType = message?.data?.type;
     if (messageType === 'USER_CHANGES') {
@@ -78,7 +76,7 @@ exports.handleMessage = async (hook, { message, sessionInfo, client, socket }) =
       const rev = message.data.baseRev;
       const padId = sessionInfo.padId;
       if (padId) {
-        logger.debug('handleMessage', 'PAD CHANGED', padId);
+        console.log('handleMessage', 'PAD CHANGED', padId);
         if (changedPads[padId]) {
           const userIndex = changedPads[padId].findIndex((e) => e.userId === user.id);
           if (userIndex > -1) {
@@ -94,7 +92,7 @@ exports.handleMessage = async (hook, { message, sessionInfo, client, socket }) =
           ip // eslint-disable-line comma-dangle
         });
       } else {
-        logger.warn('handleMessage', 'Pad changed, but no padId!');
+        console.log('handleMessage', 'Pad changed, but no padId!');
       }
     }
   }
@@ -109,20 +107,20 @@ exports.handleMessage = async (hook, { message, sessionInfo, client, socket }) =
  * @see {@link http://etherpad.org/doc/v1.8.14/#index_loadsettings}
  */
 exports.loadSettings = async (hook, args) => {
-  logger.debug('ep_webhooks', hook, args);
+  console.log('ep_webhooks', hook, args);
 
   const settings = args.settings;
-  if (settings && settings[PLUGIN_NAME]) {
+  if (settings?.[PLUGIN_NAME]) {
     pluginSettings = settings[PLUGIN_NAME];
 
-    logger.debug('loadSettings', 'pluginSettings', pluginSettings);
+    console.log('loadSettings', 'pluginSettings', pluginSettings);
 
     const caCert = pluginSettings.caCert;
     if (caCert) {
       if (caCert.indexOf('-----BEGIN CERTIFICATE-----') !== 0) {
         const message = `Invalid configuration! If you provide caCert,
         make sure it looks like a cert.`;
-        logger.error(message)
+        console.log(message)
         throw new Error(message);
       }
     }
@@ -131,8 +129,8 @@ exports.loadSettings = async (hook, args) => {
 };
 
 exports.padUpdate = async (hook, { pad, authorId }) => {
-  logger.debug('ep_webhooks', hook);
-  if (pad.id && changedPads[pad.id] && changedPads[pad.id].length) {
+  console.log('ep_webhooks', hook);
+  if (pad.id && changedPads[pad.id]?.length) {
     changedPads[pad.id].forEach((pad, key) => {
       if (pad.author === authorId) {
         changedPads[pad.id][key].rev = pad.head;
